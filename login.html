@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal Login - Paavai CSE Mentorship Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); min-height: 100vh;" class="d-flex align-items-center justify-content-center py-4">
+
+  <div class="card-custom bg-white text-dark p-4 p-md-5 mx-auto shadow-lg" style="width: 100%; max-width: 440px; border-radius: 20px;">
+    <div class="text-center mb-4">
+      <div class="d-inline-flex align-items-center justify-content-center bg-primary rounded-circle mb-3" style="width: 56px; height: 56px;">
+        <i class="bi bi-shield-lock-fill text-white fs-3"></i>
+      </div>
+      <h4 class="fw-bold mb-0">Portal Login</h4>
+      <p class="text-muted small">Sign in with Student or Admin credentials</p>
+    </div>
+
+    <!-- Login Form -->
+    <form id="portal-login-form">
+      <div class="mb-3">
+        <label class="form-label text-dark small fw-medium">Username</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light text-secondary"><i class="bi bi-person"></i></span>
+          <input type="text" id="login-username" class="form-control" placeholder="Enter Username" required>
+        </div>
+      </div>
+      <div class="mb-4">
+        <label class="form-label text-dark small fw-medium">Password</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light text-secondary"><i class="bi bi-lock"></i></span>
+          <input type="password" id="login-password" class="form-control" placeholder="Enter Password" required>
+        </div>
+      </div>
+      <button type="submit" id="login-btn" class="btn btn-primary w-100 py-25 fw-semibold hover-lift">
+        Sign In & Go to Dashboard <i class="bi bi-arrow-right ms-1"></i>
+      </button>
+    </form>
+
+    <div class="text-center mt-4 border-top pt-3">
+      <button type="button" onclick="window.location.href='index.html'" class="btn btn-link text-secondary small text-decoration-none p-0">
+        <i class="bi bi-arrow-left me-1"></i> Back to Main Portal
+      </button>
+    </div>
+  </div>
+
+  <!-- Scripts: auth.js is intentionally excluded here to prevent immediate index.html redirects -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/github-sync.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.getElementById('portal-login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const u = document.getElementById('login-username').value.trim();
+      const p = document.getElementById('login-password').value.trim();
+      const btn = document.getElementById('login-btn');
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Authenticating...';
+
+      // 1. Admin Login Check (admin / admin123)
+      if (u === 'admin' && p === 'admin123') {
+        sessionStorage.setItem('logged_user_role', 'admin');
+        if (typeof showToast === 'function') showToast('Admin Logged in! Redirecting...', 'success');
+        setTimeout(() => window.location.href = 'dashboard.html', 800);
+        return;
+      }
+
+      // 2. Student Login Check from GitHub Cloud Database
+      try {
+        const students = await fetchStudentsFromGitHub() || [];
+        const foundStudent = students.find(s => s.username && s.username.toLowerCase() === u.toLowerCase() && s.password === p);
+
+        if (foundStudent) {
+          sessionStorage.setItem('logged_user_role', 'student');
+          sessionStorage.setItem('current_student', JSON.stringify(foundStudent));
+
+          if (typeof showToast === 'function') showToast(`Welcome ${foundStudent.name}! Redirecting...`, 'success');
+          setTimeout(() => window.location.href = 'dashboard.html', 800);
+        } else {
+          if (typeof showToast === 'function') showToast('Invalid Username or Password!', 'danger');
+          else alert('Invalid Username or Password!');
+        }
+      } catch (err) {
+        console.error('Login Fetch Error:', err);
+        if (typeof showToast === 'function') showToast('Error connecting to database!', 'danger');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'Sign In & Go to Dashboard <i class="bi bi-arrow-right ms-1"></i>';
+      }
+    });
+  </script>
+</body>
+</html>

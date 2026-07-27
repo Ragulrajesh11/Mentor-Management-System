@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paavai Engineering College - CSE Mentorship Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .hero-title {
+      font-size: 2.6rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .quote-box {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px dashed rgba(56, 189, 248, 0.4);
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
+      min-height: 160px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+  </style>
+</head>
+<body style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); min-height: 100vh;" class="py-4">
+
+  <div class="container">
+    <!-- Navbar Header -->
+    <div class="d-flex justify-content-between align-items-center mb-5">
+      <div class="text-white">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-mortarboard-fill text-primary fs-3"></i>
+          <span class="fw-bold fs-5 text-uppercase tracking-wider">Paavai Engineering College</span>
+        </div>
+        <span class="badge bg-primary-subtle text-primary mt-1">Department of CSE</span>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="students.html" class="btn btn-outline-light btn-sm rounded-pill px-3 fw-semibold">
+          <i class="bi bi-person-plus me-1"></i> Enroll Student
+        </a>
+        <!-- Login Button with Relative Redirect -->
+        <button type="button" onclick="window.location.href='./login.html'" class="btn btn-primary btn-sm rounded-pill px-4 fw-bold">
+          <i class="bi bi-box-arrow-in-right me-1"></i> Login
+        </button>
+      </div>
+    </div>
+
+    <!-- Hero Header -->
+    <div class="text-center my-4 py-3" id="hero-section">
+      <h1 class="hero-title mb-2">Paavai CSE Mentorship Portal</h1>
+      <p class="text-secondary small mb-4"><i class="bi bi-geo-alt-fill text-danger me-1"></i>Paavai Engineering College, Namakkal - Department of Computer Science & Engineering</p>
+      
+      <!-- 3-Second Automated GSAP Animated Quotes Container -->
+      <div class="quote-box p-4 mx-auto text-white shadow-lg my-4" style="max-width: 700px;">
+        <i class="bi bi-quote text-info fs-2 mb-2"></i>
+        <p id="quote-text" class="fw-semibold fst-italic mb-2 fs-5" style="min-height: 50px;">"Loading quote..."</p>
+        <span id="quote-author" class="text-info small fw-bold">- Author</span>
+      </div>
+
+      <div class="mt-4">
+        <a href="students.html" class="btn btn-primary btn-lg rounded-pill px-5 py-3 fw-bold shadow-lg">
+          <i class="bi bi-rocket-takeoff me-2"></i> Get Started / Student Registration
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    const quotesList = [
+      { text: "Technology is best when it brings people together.", author: "Matt Mullenweg" },
+      { text: "First, solve the problem. Then, write the code.", author: "John Johnson" },
+      { text: "The computer was born to solve problems that did not exist before.", author: "Bill Gates" },
+      { text: "Code is like humor. When you have to explain it, it’s bad.", author: "Cory House" },
+      { text: "Engineering is the closest thing to magic that exists in the world.", author: "Elon Musk" }
+    ];
+
+    let currentQuoteIndex = 0;
+
+    function animateNextQuote() {
+      const qText = document.getElementById('quote-text');
+      const qAuthor = document.getElementById('quote-author');
+
+      if (!qText || !qAuthor) return;
+
+      gsap.to([qText, qAuthor], {
+        opacity: 0,
+        y: -15,
+        duration: 0.5,
+        onComplete: () => {
+          currentQuoteIndex = (currentQuoteIndex + 1) % quotesList.length;
+          const current = quotesList[currentQuoteIndex];
+
+          qText.innerText = `"${current.text}"`;
+          qAuthor.innerText = `- ${current.author}`;
+
+          gsap.fromTo([qText, qAuthor], 
+            { opacity: 0, y: 15 }, 
+            { opacity: 1, y: 0, duration: 0.5 }
+          );
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Clean state on landing page load if user logged out
+      if (!sessionStorage.getItem('logged_user_role')) {
+        localStorage.removeItem('current_student');
+      }
+
+      const initial = quotesList[0];
+      const qText = document.getElementById('quote-text');
+      const qAuthor = document.getElementById('quote-author');
+      
+      if (qText && qAuthor) {
+        qText.innerText = `"${initial.text}"`;
+        qAuthor.innerText = `- ${initial.author}`;
+        setInterval(animateNextQuote, 3000);
+      }
+    });
+  </script>
+</body>
+</html>

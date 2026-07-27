@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports - Mentor System</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="app-layout">
+  <aside id="sidebar">
+    <div class="sidebar-brand"><i class="bi bi-mortarboard-fill text-primary me-2 fs-4"></i><span>MentorPulse</span></div>
+    <ul class="sidebar-menu">
+      <li><a href="dashboard.html" class="nav-link"><i class="bi bi-grid-1x2"></i> Dashboard</a></li>
+      <li><a href="students.html" class="nav-link"><i class="bi bi-people"></i> Students</a></li>
+      <li><a href="attendance.html" class="nav-link"><i class="bi bi-calendar-check"></i> Attendance</a></li>
+      <li><a href="marks.html" class="nav-link"><i class="bi bi-journal-bookmark"></i> Marks & GPA</a></li>
+      <li><a href="placement.html" class="nav-link"><i class="bi bi-briefcase"></i> Placements</a></li>
+      <li><a href="certificates.html" class="nav-link"><i class="bi bi-award"></i> Certificates</a></li>
+      <li><a href="skills.html" class="nav-link"><i class="bi bi-cpu"></i> Skill Matrix</a></li>
+      <li><a href="documents.html" class="nav-link"><i class="bi bi-file-earmark-lock"></i> Vault</a></li>
+      <li><a href="meetings.html" class="nav-link"><i class="bi bi-clock-history"></i> Sessions</a></li>
+      <li><a href="reports.html" class="nav-link active"><i class="bi bi-file-bar-graph"></i> Reports</a></li>
+      <li><a href="settings.html" class="nav-link"><i class="bi bi-gear"></i> Settings</a></li>
+    </ul>
+    <div class="p-3 border-top border-secondary border-opacity-25">
+      <button class="btn btn-outline-danger btn-sm w-100" onclick="AuthManager.logout()"><i class="bi bi-box-arrow-right me-1"></i> Sign Out</button>
+    </div>
+  </aside>
+
+  <main id="main-content">
+    <header class="top-navbar">
+      <div class="d-flex align-items-center gap-3">
+        <button id="sidebar-toggle" class="btn btn-light btn-sm border"><i class="bi bi-list fs-5"></i></button>
+        <span class="text-secondary small">Analytics / Batch Exports</span>
+      </div>
+      <button id="theme-toggle" class="btn btn-light btn-sm border rounded-circle"><i class="bi bi-moon-stars"></i></button>
+    </header>
+
+    <div class="p-4">
+      <h4 class="fw-bold mb-0">Cohort Executive Reports</h4>
+      <p class="text-secondary small mb-4">Export complete batch summaries offline.</p>
+
+      <div class="row g-3">
+        <div class="col-12 col-md-6">
+          <div class="card-custom text-center p-4">
+            <i class="bi bi-file-earmark-excel text-success display-4 mb-2"></i>
+            <h6 class="fw-bold">Export Excel Workbook</h6>
+            <p class="text-secondary small">Download raw IndexedDB tabular data in .XLSX format.</p>
+            <button class="btn btn-success btn-sm w-100" onclick="exportExcel()"><i class="bi bi-download me-1"></i> Download XLSX</button>
+          </div>
+        </div>
+        <div class="col-12 col-md-6">
+          <div class="card-custom text-center p-4">
+            <i class="bi bi-file-earmark-pdf text-danger display-4 mb-2"></i>
+            <h6 class="fw-bold">Export PDF Analytics Summary</h6>
+            <p class="text-secondary small">Generate formatted PDF summary of student metrics.</p>
+            <button class="btn btn-danger btn-sm w-100" onclick="exportPDF()"><i class="bi bi-download me-1"></i> Download PDF Report</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="js/db.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+<script>
+  async function exportExcel() {
+    const students = await dbEngine.getAll('students');
+    const ws = XLSX.utils.json_to_sheet(students);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Cohort Data");
+    XLSX.writeFile(wb, "Batch_Mentorship_Report.xlsx");
+  }
+
+  async function exportPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const students = await dbEngine.getAll('students');
+    
+    doc.setFontSize(18);
+    doc.text("Mentorship Cohort Executive Report", 14, 20);
+    doc.setFontSize(11);
+    doc.text(`Total Students: ${students.length}`, 14, 30);
+    doc.text(`Generated On: ${new Date().toLocaleDateString()}`, 14, 37);
+
+    let y = 50;
+    students.slice(0, 15).forEach((s, idx) => {
+      doc.text(`${idx + 1}. ${s.name} - ${s.department} | CGPA: ${s.cgpa} | Attendance: ${s.attendancePct}%`, 14, y);
+      y += 8;
+    });
+
+    doc.save("Batch_Summary_Report.pdf");
+  }
+</script>
+</body>
+</html>
