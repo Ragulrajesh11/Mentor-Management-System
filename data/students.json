@@ -1,19 +1,5 @@
 [
   {
-    "id": "1725",
-    "name": "Varadhan",
-    "username": "Varadhan",
-    "password": "1234",
-    "department": "Computer Science & Engineering",
-    "email": "varadhan@gmail.com",
-    "phone": "9987654321",
-    "parentPhone": "9874563210",
-    "address": "trichy",
-    "docUrl": "https://raw.githubusercontent.com/Ragulrajesh11/Mentor-Management-System/main/uploads/1725_1784909367157_software_engineer_intern_certificate.pdf",
-    "updatedAt": "2026-07-24T16:09:56.061Z",
-    "cgpa": 8
-  },
-  {
     "id": "1726",
     "name": "Ragul M",
     "username": "Ragul",
