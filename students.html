@@ -62,9 +62,9 @@
           <p class="text-secondary small mb-0">Manage and view enrolled mentee details.</p>
         </div>
         <div class="d-flex gap-2">
-          <!-- Admin Only Add Student Button -->
+          <!-- Admin Only Register Student Button -->
           <button id="add-student-btn" class="btn btn-success btn-sm" style="display:none;" data-bs-toggle="modal" data-bs-target="#addStudentModal">
-            <i class="bi bi-person-plus me-1"></i> Add Student
+            <i class="bi bi-person-plus me-1"></i> Register Student
           </button>
           <button class="btn btn-primary btn-sm" onclick="loadStudentsTable()">
             <i class="bi bi-arrow-clockwise me-1"></i> Refresh Table
@@ -82,12 +82,15 @@
                 <th>Name</th>
                 <th>Department</th>
                 <th>CGPA</th>
+                <th>Student Mobile</th>
+                <th>Parent Mobile</th>
+                <th>Document</th>
                 <th id="actions-header" style="display:none;">Actions</th>
               </tr>
             </thead>
             <tbody id="students-table-body">
               <tr>
-                <td colspan="5" class="text-center py-4 text-muted">
+                <td colspan="8" class="text-center py-4 text-muted">
                   <div class="spinner-border spinner-border-sm me-2 text-primary"></div> Loading student data...
                 </td>
               </tr>
@@ -100,37 +103,52 @@
   </main>
 </div>
 
-<!-- Add Student Modal (Admin Only) -->
+<!-- Add Student Registration Modal -->
 <div class="modal fade" id="addStudentModal" tabindex="-1" aria-labelledby="addStudentModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title fw-bold" id="addStudentModalLabel"><i class="bi bi-person-plus text-primary me-2"></i>Add New Student</h5>
+        <h5 class="modal-title fw-bold" id="addStudentModalLabel"><i class="bi bi-person-vcard text-primary me-2"></i>New Student Registration</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <form id="addStudentForm">
         <div class="modal-body">
-          <div class="mb-3">
-            <label for="add-regno" class="form-label fw-semibold small">Register Number / Student ID</label>
-            <input type="text" id="add-regno" class="form-control" placeholder="e.g., 1727" required>
-          </div>
-          <div class="mb-3">
-            <label for="add-name" class="form-label fw-semibold small">Full Name</label>
-            <input type="text" id="add-name" class="form-control" placeholder="e.g., Kowsika" required>
-          </div>
-          <div class="mb-3">
-            <label for="add-dept" class="form-label fw-semibold small">Department</label>
-            <input type="text" id="add-dept" class="form-control" value="CSE" required>
-          </div>
-          <div class="mb-3">
-            <label for="add-cgpa" class="form-label fw-semibold small">CGPA</label>
-            <input type="number" step="0.01" min="0" max="10" id="add-cgpa" class="form-control" placeholder="e.g., 8.50" required>
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <label for="add-regno" class="form-label fw-semibold small">Register Number *</label>
+              <input type="text" id="add-regno" class="form-control" placeholder="e.g., 1727" required>
+            </div>
+            <div class="col-12 col-md-6">
+              <label for="add-name" class="form-label fw-semibold small">Full Name *</label>
+              <input type="text" id="add-name" class="form-control" placeholder="e.g., Kowsika S" required>
+            </div>
+            <div class="col-12 col-md-6">
+              <label for="add-dept" class="form-label fw-semibold small">Department *</label>
+              <input type="text" id="add-dept" class="form-control" value="CSE" required>
+            </div>
+            <div class="col-12 col-md-6">
+              <label for="add-cgpa" class="form-label fw-semibold small">CGPA *</label>
+              <input type="number" step="0.01" min="0" max="10" id="add-cgpa" class="form-control" placeholder="e.g., 8.50" required>
+            </div>
+            <div class="col-12 col-md-6">
+              <label for="add-student-mobile" class="form-label fw-semibold small">Student Mobile Number *</label>
+              <input type="tel" id="add-student-mobile" class="form-control" pattern="[0-9]{10}" placeholder="10-digit Mobile No" required>
+            </div>
+            <div class="col-12 col-md-6">
+              <label for="add-parent-mobile" class="form-label fw-semibold small">Parent Mobile Number *</label>
+              <input type="tel" id="add-parent-mobile" class="form-control" pattern="[0-9]{10}" placeholder="10-digit Parent Mobile No" required>
+            </div>
+            <div class="col-12">
+              <label for="add-doc" class="form-label fw-semibold small">Upload Student Document / ID Proof (PDF / Image)</label>
+              <input type="file" id="add-doc" class="form-control" accept=".pdf,image/*">
+              <div class="form-text">Optional: Upload student ID, certificate, or reference document.</div>
+            </div>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
           <button type="submit" class="btn btn-primary btn-sm" id="save-student-btn">
-            <i class="bi bi-check-circle me-1"></i> Save Student
+            <i class="bi bi-check-circle me-1"></i> Register & Save
           </button>
         </div>
       </form>
@@ -172,14 +190,14 @@
     try {
       let students = await fetchStudentsFromGitHub() || [];
 
-      // 🔒 PRIVACY GUARD: Student Login செய்தால் அவனது விவரம் மட்டுமே தெரியும்
+      // 🔒 PRIVACY GUARD: Student Login செய்தால் அவனது சொந்த விவரம் மட்டுமே தெரியும்
       if (userRole === 'student' && studentDataStr) {
         const loggedStudent = JSON.parse(studentDataStr);
         students = students.filter(s => String(s.id) === String(loggedStudent.id) || s.username === loggedStudent.username);
       }
 
       if (students.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">No student records found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted">No student records found.</td></tr>`;
         return;
       }
 
@@ -189,6 +207,11 @@
           <td>${student.name || 'N/A'}</td>
           <td><span class="badge bg-secondary-subtle text-secondary">${student.department || 'CSE'}</span></td>
           <td class="fw-bold text-primary">${student.cgpa || 'N/A'}</td>
+          <td>${student.studentMobile ? `<a href="tel:${student.studentMobile}" class="text-decoration-none"><i class="bi bi-telephone me-1"></i>${student.studentMobile}</a>` : '<span class="text-muted">-</span>'}</td>
+          <td>${student.parentMobile ? `<a href="tel:${student.parentMobile}" class="text-decoration-none text-success"><i class="bi bi-telephone-fill me-1"></i>${student.parentMobile}</a>` : '<span class="text-muted">-</span>'}</td>
+          <td>
+            ${student.docUrl ? `<a href="${student.docUrl}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-file-earmark-text"></i> View Doc</a>` : '<span class="badge bg-light text-secondary">No Doc</span>'}
+          </td>
           ${userRole === 'admin' ? `
             <td>
               <button class="btn btn-outline-danger btn-sm" onclick="handleDeleteStudent('${student.id}', '${student.name}')">
@@ -201,57 +224,77 @@
 
     } catch (err) {
       console.error('Error loading students:', err);
-      tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-danger">Error loading data from GitHub!</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-danger">Error loading data from GitHub!</td></tr>`;
     }
   }
 
-  // Admin Add New Student Action
+  // Admin Register New Student Action
   document.getElementById('addStudentForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const saveBtn = document.getElementById('save-student-btn');
     saveBtn.disabled = true;
-    saveBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Saving...`;
+    saveBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Saving & Syncing...`;
 
-    const newStudent = {
-      id: document.getElementById('add-regno').value.trim(),
-      name: document.getElementById('add-name').value.trim(),
-      department: document.getElementById('add-dept').value.trim(),
-      cgpa: document.getElementById('add-cgpa').value.trim(),
-      username: document.getElementById('add-regno').value.trim(),
-      role: 'student'
-    };
+    const regno = document.getElementById('add-regno').value.trim();
+    const name = document.getElementById('add-name').value.trim();
+    const dept = document.getElementById('add-dept').value.trim();
+    const cgpa = document.getElementById('add-cgpa').value.trim();
+    const studentMobile = document.getElementById('add-student-mobile').value.trim();
+    const parentMobile = document.getElementById('add-parent-mobile').value.trim();
+    const fileInput = document.getElementById('add-doc');
+
+    let uploadedDocUrl = '';
 
     try {
+      // 1. Check existing students
       let students = await fetchStudentsFromGitHub() || [];
-      
-      // Duplicate ID Check
-      const exists = students.some(s => String(s.id) === String(newStudent.id));
+      const exists = students.some(s => String(s.id) === String(regno));
       if (exists) {
         alert('Student with this Register Number already exists!');
         saveBtn.disabled = false;
-        saveBtn.innerHTML = `<i class="bi bi-check-circle me-1"></i> Save Student`;
+        saveBtn.innerHTML = `<i class="bi bi-check-circle me-1"></i> Register & Save`;
         return;
       }
+
+      // 2. Upload Document to GitHub uploads/ folder if selected
+      if (fileInput && fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        uploadedDocUrl = await uploadDocumentToGitHub(file, regno);
+      }
+
+      // 3. Create New Student Object
+      const newStudent = {
+        id: regno,
+        regNo: regno,
+        name: name,
+        department: dept,
+        cgpa: cgpa,
+        studentMobile: studentMobile,
+        parentMobile: parentMobile,
+        docUrl: uploadedDocUrl,
+        username: regno,
+        role: 'student'
+      };
 
       students.push(newStudent);
       const isSaved = await syncStudentsToGitHub(students);
 
       if (isSaved) {
-        alert('New Student Added Successfully!');
+        alert('Student Registered Successfully!');
         document.getElementById('addStudentForm').reset();
         const modalEl = document.getElementById('addStudentModal');
         const modal = bootstrap.Modal.getInstance(modalEl);
         if (modal) modal.hide();
         await loadStudentsTable();
       } else {
-        alert('Failed to save student to GitHub JSON!');
+        alert('Failed to save student details to GitHub!');
       }
     } catch (err) {
-      console.error('Add Student Error:', err);
-      alert('Error occurred while adding student.');
+      console.error('Registration Error:', err);
+      alert('An error occurred during registration.');
     } finally {
       saveBtn.disabled = false;
-      saveBtn.innerHTML = `<i class="bi bi-check-circle me-1"></i> Save Student`;
+      saveBtn.innerHTML = `<i class="bi bi-check-circle me-1"></i> Register & Save`;
     }
   });
 
@@ -260,15 +303,12 @@
     const confirmDelete = confirm(`Are you sure you want to delete student: ${studentName} (${studentId})?`);
     
     if (confirmDelete) {
-      if (typeof showToast === 'function') showToast(`Deleting ${studentName}...`, 'info');
-      
       const isDeleted = await deleteStudentFromGitHub(studentId);
-      
       if (isDeleted) {
-        if (typeof showToast === 'function') showToast('Student deleted successfully!', 'success');
+        alert('Student deleted successfully!');
         await loadStudentsTable();
       } else {
-        if (typeof showToast === 'function') showToast('Failed to delete student from GitHub!', 'danger');
+        alert('Failed to delete student from GitHub!');
       }
     }
   }
