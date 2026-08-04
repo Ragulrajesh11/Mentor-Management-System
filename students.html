@@ -4,10 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Students Directory - Paavai CSE Mentorship Portal</title>
+  
+  <!-- CSS Stylesheets -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
+  
+  <!-- Relative Path for GitHub Pages compatibility -->
+  <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
 
@@ -57,9 +61,15 @@
           <h4 class="fw-bold mb-0">Students Directory</h4>
           <p class="text-secondary small mb-0">Manage and view enrolled mentee details.</p>
         </div>
-        <button class="btn btn-primary btn-sm" onclick="loadStudentsTable()">
-          <i class="bi bi-arrow-clockwise me-1"></i> Refresh Table
-        </button>
+        <div class="d-flex gap-2">
+          <!-- Admin Only Add Student Button -->
+          <button id="add-student-btn" class="btn btn-success btn-sm" style="display:none;" data-bs-toggle="modal" data-bs-target="#addStudentModal">
+            <i class="bi bi-person-plus me-1"></i> Add Student
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="loadStudentsTable()">
+            <i class="bi bi-arrow-clockwise me-1"></i> Refresh Table
+          </button>
+        </div>
       </div>
 
       <!-- Students Table Card -->
@@ -90,29 +100,74 @@
   </main>
 </div>
 
+<!-- Add Student Modal (Admin Only) -->
+<div class="modal fade" id="addStudentModal" tabindex="-1" aria-labelledby="addStudentModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold" id="addStudentModalLabel"><i class="bi bi-person-plus text-primary me-2"></i>Add New Student</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="addStudentForm">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="add-regno" class="form-label fw-semibold small">Register Number / Student ID</label>
+            <input type="text" id="add-regno" class="form-control" placeholder="e.g., 1727" required>
+          </div>
+          <div class="mb-3">
+            <label for="add-name" class="form-label fw-semibold small">Full Name</label>
+            <input type="text" id="add-name" class="form-control" placeholder="e.g., Kowsika" required>
+          </div>
+          <div class="mb-3">
+            <label for="add-dept" class="form-label fw-semibold small">Department</label>
+            <input type="text" id="add-dept" class="form-control" value="CSE" required>
+          </div>
+          <div class="mb-3">
+            <label for="add-cgpa" class="form-label fw-semibold small">CGPA</label>
+            <input type="number" step="0.01" min="0" max="10" id="add-cgpa" class="form-control" placeholder="e.g., 8.50" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm" id="save-student-btn">
+            <i class="bi bi-check-circle me-1"></i> Save Student
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/github-sync.js"></script>
-<script src="js/app.js"></script>
+<script src="./js/auth.js"></script>
+<script src="./js/github-sync.js"></script>
+<script src="./js/app.js"></script>
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
+    checkAdminAccess();
     loadStudentsTable();
   });
 
-  async function loadStudentsTable() {
-    const tbody = document.getElementById('students-table-body');
-    const actionsHeader = document.getElementById('actions-header');
-    
+  function checkAdminAccess() {
     const userRole = sessionStorage.getItem('logged_user_role');
-    const studentDataStr = sessionStorage.getItem('current_student');
+    const addBtn = document.getElementById('add-student-btn');
+    const actionsHeader = document.getElementById('actions-header');
 
     if (userRole === 'admin') {
+      if (addBtn) addBtn.style.display = 'inline-block';
       if (actionsHeader) actionsHeader.style.display = 'table-cell';
     } else {
+      if (addBtn) addBtn.style.display = 'none';
       if (actionsHeader) actionsHeader.style.display = 'none';
     }
+  }
+
+  async function loadStudentsTable() {
+    const tbody = document.getElementById('students-table-body');
+    const userRole = sessionStorage.getItem('logged_user_role');
+    const studentDataStr = sessionStorage.getItem('current_student');
 
     try {
       let students = await fetchStudentsFromGitHub() || [];
@@ -149,6 +204,56 @@
       tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-danger">Error loading data from GitHub!</td></tr>`;
     }
   }
+
+  // Admin Add New Student Action
+  document.getElementById('addStudentForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const saveBtn = document.getElementById('save-student-btn');
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Saving...`;
+
+    const newStudent = {
+      id: document.getElementById('add-regno').value.trim(),
+      name: document.getElementById('add-name').value.trim(),
+      department: document.getElementById('add-dept').value.trim(),
+      cgpa: document.getElementById('add-cgpa').value.trim(),
+      username: document.getElementById('add-regno').value.trim(),
+      role: 'student'
+    };
+
+    try {
+      let students = await fetchStudentsFromGitHub() || [];
+      
+      // Duplicate ID Check
+      const exists = students.some(s => String(s.id) === String(newStudent.id));
+      if (exists) {
+        alert('Student with this Register Number already exists!');
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = `<i class="bi bi-check-circle me-1"></i> Save Student`;
+        return;
+      }
+
+      students.push(newStudent);
+      const isSaved = await syncStudentsToGitHub(students);
+
+      if (isSaved) {
+        alert('New Student Added Successfully!');
+        document.getElementById('addStudentForm').reset();
+        const modalEl = document.getElementById('addStudentModal');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+        await loadStudentsTable();
+      } else {
+        alert('Failed to save student to GitHub JSON!');
+      }
+    } catch (err) {
+      console.error('Add Student Error:', err);
+      alert('Error occurred while adding student.');
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = `<i class="bi bi-check-circle me-1"></i> Save Student`;
+    }
+  });
 
   // Admin Student Delete Action
   async function handleDeleteStudent(studentId, studentName) {
