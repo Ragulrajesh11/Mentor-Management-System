@@ -5,12 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Students Directory - Paavai CSE Mentorship Portal</title>
   
-  <!-- CSS Stylesheets -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   
-  <!-- Relative Path for GitHub Pages compatibility -->
   <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
@@ -62,7 +60,7 @@
           <p class="text-secondary small mb-0">Manage and view enrolled mentee details.</p>
         </div>
         <div class="d-flex gap-2">
-          <!-- Admin Only Register Student Button -->
+          <!-- Admin Only Button -->
           <button id="add-student-btn" class="btn btn-success btn-sm" style="display:none;" data-bs-toggle="modal" data-bs-target="#addStudentModal">
             <i class="bi bi-person-plus me-1"></i> Register Student
           </button>
@@ -104,11 +102,11 @@
 </div>
 
 <!-- Add Student Registration Modal -->
-<div class="modal fade" id="addStudentModal" tabindex="-1" aria-labelledby="addStudentModalLabel" aria-hidden="true">
+<div class="modal fade" id="addStudentModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title fw-bold" id="addStudentModalLabel"><i class="bi bi-person-vcard text-primary me-2"></i>New Student Registration</h5>
+        <h5 class="modal-title fw-bold"><i class="bi bi-person-vcard text-primary me-2"></i>New Student Registration</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <form id="addStudentForm">
@@ -141,7 +139,6 @@
             <div class="col-12">
               <label for="add-doc" class="form-label fw-semibold small">Upload Student Document / ID Proof (PDF / Image)</label>
               <input type="file" id="add-doc" class="form-control" accept=".pdf,image/*">
-              <div class="form-text">Optional: Upload student ID, certificate, or reference document.</div>
             </div>
           </div>
         </div>
@@ -156,7 +153,6 @@
   </div>
 </div>
 
-<!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="./js/auth.js"></script>
 <script src="./js/github-sync.js"></script>
@@ -190,10 +186,14 @@
     try {
       let students = await fetchStudentsFromGitHub() || [];
 
-      // 🔒 PRIVACY GUARD: Student Login செய்தால் அவனது சொந்த விவரம் மட்டுமே தெரியும்
+      // 🔒 STUDENT PRIVACY GUARD: Student Login செய்தால் அவனது சொந்த விவரம் மட்டுமே தெரியும்
       if (userRole === 'student' && studentDataStr) {
         const loggedStudent = JSON.parse(studentDataStr);
-        students = students.filter(s => String(s.id) === String(loggedStudent.id) || s.username === loggedStudent.username);
+        students = students.filter(s => 
+          String(s.id) === String(loggedStudent.id) || 
+          String(s.regNo) === String(loggedStudent.id) ||
+          s.username === loggedStudent.username
+        );
       }
 
       if (students.length === 0) {
@@ -233,7 +233,7 @@
     e.preventDefault();
     const saveBtn = document.getElementById('save-student-btn');
     saveBtn.disabled = true;
-    saveBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Saving & Syncing...`;
+    saveBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Uploading & Saving...`;
 
     const regno = document.getElementById('add-regno').value.trim();
     const name = document.getElementById('add-name').value.trim();
@@ -246,7 +246,6 @@
     let uploadedDocUrl = '';
 
     try {
-      // 1. Check existing students
       let students = await fetchStudentsFromGitHub() || [];
       const exists = students.some(s => String(s.id) === String(regno));
       if (exists) {
@@ -256,13 +255,12 @@
         return;
       }
 
-      // 2. Upload Document to GitHub uploads/ folder if selected
+      // Upload Document to GitHub
       if (fileInput && fileInput.files.length > 0) {
         const file = fileInput.files[0];
         uploadedDocUrl = await uploadDocumentToGitHub(file, regno);
       }
 
-      // 3. Create New Student Object
       const newStudent = {
         id: regno,
         regNo: regno,
@@ -298,11 +296,9 @@
     }
   });
 
-  // Admin Student Delete Action
+  // Delete Action
   async function handleDeleteStudent(studentId, studentName) {
-    const confirmDelete = confirm(`Are you sure you want to delete student: ${studentName} (${studentId})?`);
-    
-    if (confirmDelete) {
+    if (confirm(`Are you sure you want to delete student: ${studentName} (${studentId})?`)) {
       const isDeleted = await deleteStudentFromGitHub(studentId);
       if (isDeleted) {
         alert('Student deleted successfully!');
