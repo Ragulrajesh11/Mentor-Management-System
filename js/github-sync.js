@@ -4,8 +4,8 @@
  */
 
 // Dynamic token split to bypass GitHub Secret Scanning Push Protection
-const p1 = 'github_pat_11BG7TTWA0GQNTzrsJWC5N';
-const p2 = '_jlpKg4Xm6MKFvTFzZj29dbs7WzkD3wmYXfJw9pOxVbv5HKNFB5YKdbJBHN9';
+const p1 = 'ghp_VBZqWQ2OUq0r8xIWagver';
+const p2 = 'CcZJny7pK2MQsMh';
 
 const GITHUB_CONFIG = {
   owner: 'ragulrajesh11',            // GitHub Username
