@@ -1,17 +1,36 @@
 /**
  * js/github-sync.js
- * Robust GitHub REST API Storage Engine
+ * Secure GitHub REST API Storage Engine with LocalStorage Token Management
  */
 
-// Dynamic token split to bypass GitHub Secret Scanning Push Protection
-const p1 = 'ghp_VBZqWQ2OUq0r8xIWagver';
-const p2 = 'CcZJny7pK2MQsMh';
+// Function to retrieve or prompt for GitHub Personal Access Token safely
+function getGitHubToken() {
+  let token = localStorage.getItem('gh_portal_token');
+  if (!token) {
+    token = prompt("Please enter your GitHub Personal Access Token (ghp_...):");
+    if (token) {
+      token = token.trim();
+      localStorage.setItem('gh_portal_token', token);
+    }
+  }
+  return token;
+}
+
+// Function to allow Admin to update Token if it expires
+function setGitHubToken(newToken) {
+  if (newToken) {
+    localStorage.setItem('gh_portal_token', newToken.trim());
+    alert("GitHub Access Token updated successfully!");
+  }
+}
 
 const GITHUB_CONFIG = {
   owner: 'ragulrajesh11',            // GitHub Username
   repo: 'Mentor-Management-System', // Repository Name
   branch: 'main',
-  token: p1 + p2
+  get token() {
+    return getGitHubToken();
+  }
 };
 
 /**
@@ -19,6 +38,12 @@ const GITHUB_CONFIG = {
  */
 async function uploadFileToGitHub(file, studentId) {
   return new Promise((resolve, reject) => {
+    const token = GITHUB_CONFIG.token;
+    if (!token) {
+      alert("GitHub Token is required to upload documents!");
+      return reject("No Token Provided");
+    }
+
     const reader = new FileReader();
     reader.readAsDataURL(file);
 
@@ -34,7 +59,7 @@ async function uploadFileToGitHub(file, studentId) {
         const response = await fetch(url, {
           method: 'PUT',
           headers: {
-            'Authorization': `token ${GITHUB_CONFIG.token}`,
+            'Authorization': `token ${token}`,
             'Content-Type': 'application/json',
             'Accept': 'application/vnd.github.v3+json'
           },
@@ -50,6 +75,10 @@ async function uploadFileToGitHub(file, studentId) {
           resolve(data.content.download_url);
         } else {
           console.error('GitHub API File Upload Error:', data);
+          if (response.status === 401) {
+            localStorage.removeItem('gh_portal_token');
+            alert('Invalid or expired Token. Please refresh and enter a valid GitHub Token!');
+          }
           reject(data);
         }
       } catch (err) {
@@ -69,13 +98,19 @@ async function uploadDocumentToGitHub(file, studentId) {
  * Save/Update JSON Database in GitHub Repo (/data/students.json)
  */
 async function syncStudentsToGitHub(studentsArray) {
+  const token = GITHUB_CONFIG.token;
+  if (!token) {
+    alert("GitHub Token is required to sync data!");
+    return false;
+  }
+
   const filePath = 'data/students.json';
   const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${filePath}`;
 
   try {
     let sha = '';
     const getRes = await fetch(url, {
-      headers: { 'Authorization': `token ${GITHUB_CONFIG.token}` }
+      headers: { 'Authorization': `token ${token}` }
     });
 
     if (getRes.ok) {
@@ -89,7 +124,7 @@ async function syncStudentsToGitHub(studentsArray) {
     const putRes = await fetch(url, {
       method: 'PUT',
       headers: {
-        'Authorization': `token ${GITHUB_CONFIG.token}`,
+        'Authorization': `token ${token}`,
         'Content-Type': 'application/json',
         'Accept': 'application/vnd.github.v3+json'
       },
@@ -101,9 +136,9 @@ async function syncStudentsToGitHub(studentsArray) {
       })
     });
 
-    const putData = await putRes.json();
-    if (!putRes.ok) {
-      console.error('GitHub Sync JSON Error:', putData);
+    if (!putRes.ok && putRes.status === 401) {
+      localStorage.removeItem('gh_portal_token');
+      alert('Invalid or expired Token. Please refresh and re-enter Token!');
     }
 
     return putRes.ok;
@@ -122,10 +157,6 @@ async function fetchStudentsFromGitHub() {
 
   try {
     const res = await fetch(url, {
-      headers: {
-        'Authorization': `token ${GITHUB_CONFIG.token}`,
-        'Accept': 'application/vnd.github.v3+json'
-      },
       cache: 'no-store'
     });
 
