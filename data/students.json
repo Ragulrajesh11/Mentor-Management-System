@@ -23,6 +23,13 @@
     "studentMobile": "9987654321",
     "parentMobile": "9874102356",
     "docUrl": "https://raw.githubusercontent.com/Ragulrajesh11/Mentor-Management-System/main/uploads/620522104039_1786210685390_IInd_YEAR_PLACEMENT.pdf",
-    "role": "student"
+    "role": "student",
+    "skills": [
+      "Java",
+      "Spring Boot",
+      "HTML5 & CSS3",
+      "JavaScript (ES6+)",
+      "MySQL"
+    ]
   }
 ]
