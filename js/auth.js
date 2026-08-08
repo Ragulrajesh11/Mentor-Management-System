@@ -48,19 +48,26 @@ const AuthManager = {
     return { success: false, message: 'Invalid Username or Password' };
   },
 
-  // Page Access Guard
+  // Page Access Guard (Fixed for GitHub Pages Sub-directory Routing)
   checkAccess: function() {
     const currentPath = window.location.pathname.toLowerCase();
 
-    // Allow index.html & login.html without authentication
-    if (currentPath.endsWith('index.html') || currentPath.endsWith('login.html') || currentPath.endsWith('/') || currentPath === '') {
-      return; 
+    // Allow Public Pages without authentication (Fixes 404 Loop on GitHub Pages)
+    if (
+      currentPath.endsWith('index.html') || 
+      currentPath.endsWith('login.html') || 
+      currentPath.endsWith('students.html') || 
+      currentPath.endsWith('/') || 
+      currentPath === ''
+    ) {
+      return; // Access allowed
     }
 
+    // Protected Routes Check
     const role = sessionStorage.getItem('logged_user_role');
     if (!role) {
-      const projectFolder = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
-      window.location.replace(window.location.origin + projectFolder + 'index.html');
+      // Relative Redirect to prevent 404 path issues
+      window.location.replace('login.html');
     }
   },
 
