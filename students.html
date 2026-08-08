@@ -60,7 +60,7 @@
           <p class="text-secondary small mb-0">Manage and view enrolled mentee details.</p>
         </div>
         <div class="d-flex gap-2">
-          <!-- Admin Only Button -->
+          <!-- Public/Admin Button -->
           <button id="add-student-btn" class="btn btn-success btn-sm" style="display:none;" data-bs-toggle="modal" data-bs-target="#addStudentModal">
             <i class="bi bi-person-plus me-1"></i> Register Student
           </button>
@@ -77,6 +77,7 @@
             <thead class="table-light">
               <tr>
                 <th>Reg No</th>
+                <th>Username</th>
                 <th>Name</th>
                 <th>Department</th>
                 <th>CGPA</th>
@@ -88,7 +89,7 @@
             </thead>
             <tbody id="students-table-body">
               <tr>
-                <td colspan="8" class="text-center py-4 text-muted">
+                <td colspan="9" class="text-center py-4 text-muted">
                   <div class="spinner-border spinner-border-sm me-2 text-primary"></div> Loading student data...
                 </td>
               </tr>
@@ -115,6 +116,14 @@
             <div class="col-12 col-md-6">
               <label for="add-regno" class="form-label fw-semibold small">Register Number *</label>
               <input type="text" id="add-regno" class="form-control" placeholder="e.g., 1727" required>
+            </div>
+            <div class="col-12 col-md-6">
+              <label for="add-username" class="form-label fw-semibold small">Username / Roll No *</label>
+              <input type="text" id="add-username" class="form-control" placeholder="e.g., 21cse045" required>
+            </div>
+            <div class="col-12 col-md-6">
+              <label for="add-password" class="form-label fw-semibold small">Create Password *</label>
+              <input type="password" id="add-password" class="form-control" placeholder="Minimum 6 characters" required>
             </div>
             <div class="col-12 col-md-6">
               <label for="add-name" class="form-label fw-semibold small">Full Name *</label>
@@ -169,11 +178,16 @@
     const addBtn = document.getElementById('add-student-btn');
     const actionsHeader = document.getElementById('actions-header');
 
-    if (userRole === 'admin') {
+    // Admin OR Public direct visitors can see Register Button
+    if (userRole === 'admin' || !userRole) {
       if (addBtn) addBtn.style.display = 'inline-block';
-      if (actionsHeader) actionsHeader.style.display = 'table-cell';
     } else {
       if (addBtn) addBtn.style.display = 'none';
+    }
+
+    if (userRole === 'admin') {
+      if (actionsHeader) actionsHeader.style.display = 'table-cell';
+    } else {
       if (actionsHeader) actionsHeader.style.display = 'none';
     }
   }
@@ -197,13 +211,14 @@
       }
 
       if (students.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted">No student records found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted">No student records found.</td></tr>`;
         return;
       }
 
       tbody.innerHTML = students.map(student => `
         <tr>
           <td class="fw-semibold">${student.id || student.regNo || 'N/A'}</td>
+          <td><span class="badge bg-info-subtle text-info fw-bold">${student.username || student.id || 'N/A'}</span></td>
           <td>${student.name || 'N/A'}</td>
           <td><span class="badge bg-secondary-subtle text-secondary">${student.department || 'CSE'}</span></td>
           <td class="fw-bold text-primary">${student.cgpa || 'N/A'}</td>
@@ -224,11 +239,11 @@
 
     } catch (err) {
       console.error('Error loading students:', err);
-      tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-danger">Error loading data from GitHub!</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-danger">Error loading data from GitHub!</td></tr>`;
     }
   }
 
-  // Admin Register New Student Action
+  // Register New Student Action
   document.getElementById('addStudentForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const saveBtn = document.getElementById('save-student-btn');
@@ -236,6 +251,8 @@
     saveBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Uploading & Saving...`;
 
     const regno = document.getElementById('add-regno').value.trim();
+    const username = document.getElementById('add-username').value.trim();
+    const password = document.getElementById('add-password').value.trim();
     const name = document.getElementById('add-name').value.trim();
     const dept = document.getElementById('add-dept').value.trim();
     const cgpa = document.getElementById('add-cgpa').value.trim();
@@ -247,9 +264,9 @@
 
     try {
       let students = await fetchStudentsFromGitHub() || [];
-      const exists = students.some(s => String(s.id) === String(regno));
+      const exists = students.some(s => String(s.id) === String(regno) || String(s.username).toLowerCase() === String(username).toLowerCase());
       if (exists) {
-        alert('Student with this Register Number already exists!');
+        alert('Student with this Register Number or Username already exists!');
         saveBtn.disabled = false;
         saveBtn.innerHTML = `<i class="bi bi-check-circle me-1"></i> Register & Save`;
         return;
@@ -264,13 +281,14 @@
       const newStudent = {
         id: regno,
         regNo: regno,
+        username: username,
+        password: password, // Student Created Password
         name: name,
         department: dept,
         cgpa: cgpa,
         studentMobile: studentMobile,
         parentMobile: parentMobile,
         docUrl: uploadedDocUrl,
-        username: regno,
         role: 'student'
       };
 
@@ -278,7 +296,7 @@
       const isSaved = await syncStudentsToGitHub(students);
 
       if (isSaved) {
-        alert('Student Registered Successfully!');
+        alert('Student Registered Successfully! You can now login with your Username & Password.');
         document.getElementById('addStudentForm').reset();
         const modalEl = document.getElementById('addStudentModal');
         const modal = bootstrap.Modal.getInstance(modalEl);
