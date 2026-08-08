@@ -33,5 +33,18 @@
     "docUrl": "https://raw.githubusercontent.com/Ragulrajesh11/Mentor-Management-System/main/uploads/1725_1786207824536_RAGUL_M_resume.pdf",
     "username": "1725",
     "role": "student"
+  },
+  {
+    "id": "1727",
+    "regNo": "1727",
+    "username": "ram123",
+    "password": "ramram",
+    "name": "Ragul M",
+    "department": "CSE",
+    "cgpa": "8.8",
+    "studentMobile": "6381746560",
+    "parentMobile": "6381746560",
+    "docUrl": "https://raw.githubusercontent.com/Ragulrajesh11/Mentor-Management-System/main/uploads/1727_1786209373361_Profile.pdf",
+    "role": "student"
   }
 ]
