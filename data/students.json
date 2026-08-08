@@ -1,28 +1,5 @@
 [
   {
-    "id": "1726",
-    "name": "Ragul M",
-    "username": "Ragul",
-    "password": "1234",
-    "department": "Computer Science & Engineering",
-    "email": "ragulrajesh25@gmail.com",
-    "phone": "6381746560",
-    "parentPhone": "9566974414",
-    "address": "trichy",
-    "docUrl": "https://raw.githubusercontent.com/Ragulrajesh11/Mentor-Management-System/main/uploads/1726_1784910214488_ramesh-fullstack-resume.pdf",
-    "updatedAt": "2026-07-24T16:23:39.863Z",
-    "skills": [
-      "Java",
-      "Spring Boot",
-      "C / C++",
-      "HTML5 & CSS3",
-      "JavaScript (ES6+)",
-      "ReactJS",
-      "MySQL"
-    ],
-    "cgpa": 8.75
-  },
-  {
     "id": "1725",
     "regNo": "1725",
     "name": "Ragul M",
