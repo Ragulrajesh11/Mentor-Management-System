@@ -11,5 +11,18 @@
     "parentMobile": "6381746560",
     "docUrl": "https://raw.githubusercontent.com/Ragulrajesh11/Mentor-Management-System/main/uploads/1727_1786209373361_Profile.pdf",
     "role": "student"
+  },
+  {
+    "id": "620522104039",
+    "regNo": "620522104039",
+    "username": "varadhan",
+    "password": "vara@123",
+    "name": "varadhan",
+    "department": "ECE",
+    "cgpa": "7.55",
+    "studentMobile": "9987654321",
+    "parentMobile": "9874102356",
+    "docUrl": "https://raw.githubusercontent.com/Ragulrajesh11/Mentor-Management-System/main/uploads/620522104039_1786210685390_IInd_YEAR_PLACEMENT.pdf",
+    "role": "student"
   }
 ]
