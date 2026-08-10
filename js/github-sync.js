@@ -1,22 +1,25 @@
 /**
  * js/github-sync.js
- * Secure GitHub REST API Storage Engine with LocalStorage Token Management
+ * Secure GitHub REST API Storage Engine with System Fallback Token
  */
 
-// Function to retrieve or prompt for GitHub Personal Access Token safely
+// SYSTEM BACKUP TOKEN (Allows Public Students to Register without Prompt)
+// Replace 'ghp_YOUR_ACTUAL_GITHUB_TOKEN_HERE' with your real GitHub Personal Access Token
+const HARDCODED_SYSTEM_TOKEN = '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';
+
+// Function to retrieve Token automatically without disturbing public users
 function getGitHubToken() {
   let token = localStorage.getItem('gh_portal_token');
-  if (!token) {
-    token = prompt("Please enter your GitHub Personal Access Token (ghp_...):");
-    if (token) {
-      token = token.trim();
-      localStorage.setItem('gh_portal_token', token);
-    }
+  
+  // If no token in user's browser, use the System Hardcoded Token as Fallback
+  if (!token || token.trim() === '') {
+    token = HARDCODED_SYSTEM_TOKEN;
+    localStorage.setItem('gh_portal_token', token);
   }
   return token;
 }
 
-// Function to allow Admin to update Token if it expires
+// Function to allow Admin to update Token dynamically if needed
 function setGitHubToken(newToken) {
   if (newToken) {
     localStorage.setItem('gh_portal_token', newToken.trim());
@@ -40,7 +43,7 @@ async function uploadFileToGitHub(file, studentId) {
   return new Promise((resolve, reject) => {
     const token = GITHUB_CONFIG.token;
     if (!token) {
-      alert("GitHub Token is required to upload documents!");
+      alert("GitHub Token configuration missing!");
       return reject("No Token Provided");
     }
 
@@ -77,7 +80,7 @@ async function uploadFileToGitHub(file, studentId) {
           console.error('GitHub API File Upload Error:', data);
           if (response.status === 401) {
             localStorage.removeItem('gh_portal_token');
-            alert('Invalid or expired Token. Please refresh and enter a valid GitHub Token!');
+            alert('Invalid Token. Restoring system backup...');
           }
           reject(data);
         }
@@ -100,7 +103,7 @@ async function uploadDocumentToGitHub(file, studentId) {
 async function syncStudentsToGitHub(studentsArray) {
   const token = GITHUB_CONFIG.token;
   if (!token) {
-    alert("GitHub Token is required to sync data!");
+    alert("GitHub Token configuration missing!");
     return false;
   }
 
@@ -138,7 +141,6 @@ async function syncStudentsToGitHub(studentsArray) {
 
     if (!putRes.ok && putRes.status === 401) {
       localStorage.removeItem('gh_portal_token');
-      alert('Invalid or expired Token. Please refresh and re-enter Token!');
     }
 
     return putRes.ok;
