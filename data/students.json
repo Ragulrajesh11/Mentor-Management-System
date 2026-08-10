@@ -31,5 +31,18 @@
       "JavaScript (ES6+)",
       "MySQL"
     ]
+  },
+  {
+    "id": "6560",
+    "regNo": "6560",
+    "username": "dommy",
+    "password": "dommy123",
+    "name": "Dommy",
+    "department": "CSE",
+    "cgpa": "8.50",
+    "studentMobile": "0638174656",
+    "parentMobile": "0638174656",
+    "docUrl": "https://raw.githubusercontent.com/Ragulrajesh11/Mentor-Management-System/main/uploads/6560_1786375605734_IInd_YEAR_PLACEMENT.pdf",
+    "role": "student"
   }
 ]
