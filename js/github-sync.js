@@ -5,7 +5,7 @@
 
 // SYSTEM BACKUP TOKEN (Allows Public Students to Register without Prompt)
 // Replace 'ghp_YOUR_ACTUAL_GITHUB_TOKEN_HERE' with your real GitHub Personal Access Token
-const HARDCODED_SYSTEM_TOKEN = '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';
+const HARDCODED_SYSTEM_TOKEN = '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';
 
 // Function to retrieve Token automatically without disturbing public users
 function getGitHubToken() {
